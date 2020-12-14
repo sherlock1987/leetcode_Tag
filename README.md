@@ -7,7 +7,7 @@ I'm currently a graduate students in USC and looking for NLP related full time j
 1. Data structure
     - pointer
         - chain
-        - [tree](##tree)
+        - [tree](#tree)
             - binary tree
             - trie
             - recursion
