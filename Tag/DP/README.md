@@ -43,7 +43,7 @@
 |45 | 跳跃游戏II | 序列型 | Fuck you, body! |
 |1143 | 最长公共子序列 | 双序列 | Fuck you, body! |
 |4 | 最长回文子串 | 区间型 | Fuck you, body! |
-|274 | 完全平方数 | 划分型 | Fuck you, body! |
+|279 | 完全平方数 | 划分型 | Fuck you, body! |
 |688 | 马在棋盘上的概率 | 背包型I | Fuck you, body! |
 |688 | 马在棋盘上的概率 | 背包型II | Fuck you, body! |
 
@@ -125,20 +125,216 @@ class Solution:
                     break
 ```
 
+# Leetcode 1143 最长公共子序列
+###题目描述
+![](1143.png)
+首先来分析一下这个问题，输入是两个，我们想要求出最长的公共子序列，然后我们会用一个矩阵来维持各个时刻的状态，最终得到最终的状态。我们把DP画出来后，可以很简单的理解到DP的精髓所在。
+![](1143_sub.png)
+- state = dp[i][j]，代表了第一个sequence(a)的前i个字母与第二个sequence(b)的前j个字母的最长的公共子序列。
+- function_1 ： max(f[i-1][j], f[i][j-1], f[i-1][j-1] + 1) if a[i]==b[j]
+- function_2 ： max(f[i-1][j], f[i][j-1]) if a[i]!=b[j]
+- initial：初始化为全0
+- final state：最终状态就是dp[-1][-1]
 
-## Tree
- - Background 
- 
-| # | Title | Solution | Basic idea (One line) |
-|---| ----- | -------- | --------------------- |
-|4 | preorder | here it is | Fuck you, body! |
-
-
-
-### for writing a code
 ```
-npm install --global standard-readme-spec
+class Solution:
+    def longestCommonSubsequence(self, text1: str, text2: str) -> int:
+        m = len(text2)
+        n = len(text1)
+        d = [[0]*(n+1) for _ in range(m+1)]
+
+        for i in range(1,m+1):
+            for j in range(1,n+1):
+                if text1[j-1] == text2[i-1]:
+                    # d[i][j] = max(d[i-1][j],d[i][j-1],d[i-1][j-1]+1)
+                    d[i][j] =  1 + d[i-1][j-1]
+                else:
+                    d[i][j] = max(d[i-1][j],d[i][j-1])
+        print(d)
+        return d[m][n]
 ```
+
+# Leetcode 5 最长回文子串
+###题目描述
+![](5.png)
+
+首先来分析一下这个问题，这个问题是一种区间的问题，因为一个状态会代表了一种区间。所以我们会采用矩阵的形式来存储这种序列的信息。
+在题目给出的例子里面，最小的就是“aba”或者“bab”这两种。实际上这道问题不像是DP的经典问法，因为他在问具体的方案，
+而不是一种类似于方案个数的东西。我们可以用一个数值来存储最大长度（max_len），一个数值来存储最大的长度的回文串(res)，然后再实际计算的时候迭代更新。
+
+- state = dp[i][j]，记录 s[i:j] 中包含的最大子回文串的长度。
+- function ： dp[i][j] = j+1-i if s[i:j+1]为回文串, then dp[i][j] = max(dp[i-1][j], dp[i][j-1], dp[i][j])
+- initial：初始化为全 1
+- final state：最终状态就是 res 字符串
+
+- O(time)：O(n^2)
+- O(space)：O(n^2)
+下面是它的状态转移矩阵以及对应代码。
+
+| # | b | a | b | a | d |
+|---| --- | --- | --- | --- | --- |
+|b| 1 | 1 | 3 | 3 | 3 |
+|a| 1 | 1 | 1 | 3 | 3 |
+|b| 1 | 1 | 1 | 3 | 3 |
+|a| 1 | 1 | 1 | 1 | 3 |
+|d| 1 | 1 | 1 | 1 | 1 |
+```
+class Solution:
+    def longestPalindrome(self, s: str) -> str:
+        # s = "bb"
+        n = len(s)
+        if n <= 1:
+            return s
+        if n == 2:
+            if s == s[::-1]:
+                return s
+            else:
+                return s[0]
+        dp = [[1]*(n + 1) for i in range(n + 1)]
+        # key is the length, and the value is the result str
+
+        max_len = 0
+        res = ""
+        for i in range(1, n):
+            for j in range(1, n):
+                if j >= i:
+                    # begin DP
+                    ele =  s[i-1:j+1]
+                    # print(ele)
+                    if ele == ele[::-1]:
+                        curr_max = j-i+1
+
+                        dp[i][j] = curr_max
+                        if curr_max > max_len:
+                            max_len = curr_max
+                            res = ele
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1], dp[i][j])
+
+        if not res: return s[0]
+        else: return res
+```
+
+
+# Leetcode 279 完全平方
+###题目描述
+![](279.png)
+
+我们先来审题，这个问题的意思是求方案的个数，而且当n=12和n=11之间会存在某种依赖关系，我们判定可以用DP来求解。
+而且，这种问题是一种划分型的问题，例如题目中的例子，12可以被划分成4+4+4的形式来得到最终的结果。而对于划分型的题型来讲，
+定义是：给定长度为N的序列或字符串，要求划分成若干段，段数不限，或指定K段–每一段满足一定的性质。
+
+
+- state = dp[i]，记录在n=i的时候所需要的最小的完全平方构成。
+- function_1 ： if i 是完全平方，dp[i] = 1
+- function_2 ： if i 不是是完全平方，dp[i] = min(dp[i-1]+1, dp[j]+1 如果(i-j) 是完全平方的话 for j < i)
+- initial：初始化为全i对应的数字，因为每一个数字都可以由1构成
+- final state：最终状态就是dp[-1]
+
+- O(time)：O(n * sqrt{n}),因为第二个循环只用根号去找对应的数值就可以了。
+- O(space)：O(n)
+
+下面是它的状态转移矩阵以及对应代码。
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 2 | 3 | 1 | 2 | 3 | 4 | 2 | 1 | 2 | 3 | 3 
+
+```
+class Solution:
+    def numSquares(self, n: int) -> int:
+        dp=[i for i in range(n+1)]
+        for i in range(2,n+1):
+            for j in range(1,int(i**(0.5))+1):
+                dp[i]=min(dp[i],dp[i-j*j]+1)
+        return dp[-1]
+```
+
+# Leetcode 416 分割等和子集
+###题目描述
+![](322.png)
+
+最基本的背包问题：
+一共有N件物品，第i（i从1开始）件物品的重量为w[i]，价值为v[i]。在总重量不超过背包承载上限W的情况下，能够装入背包的最大价值是多少？
+如果采用暴力穷举的方式，每件物品都存在装入和不装入两种情况，所以总的时间复杂度是O(2^N)，这是不可接受的。
+而使用动态规划可以将复杂度降至O(NW)。我们的目标是书包内物品的总价值，而变量是物品和书包的限重，所以我们可定义状态dp:
+
+```
+dp[i][j]表示将前i件物品装进限重为j的背包可以获得的最大价值, 0<=i<=N, 0<=j<=W
+```
+
+
+- state = dp[i]，记录在n=i的时候所需要的最小的硬币构成的数目。
+- function ： dp[i] = min(dp[i-c] + 1 for c in coins)
+- initial：初始化为全0
+- final state：最终状态就是dp[-1]
+
+- O(time)：O(m×n)
+- O(space)：O(n)
+
+下面是它的状态转移矩阵以及对应代码。
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | 2 | 2 | 1 | 2 | 2 | 3 | 3 | 2 | 3  
+需要注意的是，这道题的初始状态有点复杂，需要多花心思在上面。
+```
+
+```
+
+# Leetcode 322 零钱兑换
+###题目描述
+![](322.png)
+
+我们先来审题，这个问题的意思是求方案的个数，amount = 11的时候会和前面的amount有某种和联系，所以可以使用DP来解决这个问题。
+这是一个典型的背包问题，这道题目中的包就是amount，背包里面装的东西就是硬币，而对于硬币的数目没有任何的限制，
+所以属于无限制背包问题，相比限制型背包问题比较简单。定义coins的长度为m，amount代表的数值为n，其实需要注意的是题目加的条件，0 <= amount <= 10^4，在amount可以变到如此大的情况下，我们的时间复杂度需要限制在O(n^2)之内，否则肯定是会超时的。
+
+- state = dp[i]，记录在n=i的时候所需要的最小的硬币构成的数目。
+- function ： dp[i] = min(dp[i-c] + 1 for c in coins)
+- initial：初始化为全0
+- final state：最终状态就是dp[-1]
+
+- O(time)：O(m×n)
+- O(space)：O(n)
+
+下面是它的状态转移矩阵以及对应代码。
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | 2 | 2 | 1 | 2 | 2 | 3 | 3 | 2 | 3  
+需要注意的是，这道题的初始状态有点复杂，需要多花心思在上面。
+
+```
+class Solution:
+    def coinChange(self, coins: List[int], amount: int) -> int:
+        m = len(coins)
+        n = amount
+
+        # This is for the special case
+        if amount == 0: return 0
+        if len(coins) == 1:
+            if amount % coins[0] == 0:
+                return int(amount/coins[0])
+            else:
+                return -1
+
+        dp = [0]*(n+1)
+        dp[0] = 0
+        for i in range(1, n+1):
+            curr = float("inf")
+            for c in coins:
+                if i-c >=0:
+                    # start dp
+                    curr = min(curr, dp[i-c] + 1)
+            dp[i] = curr
+
+        if dp[-1] == float("inf"):
+            return -1
+        else:
+            return dp[-1]
+```
+
+
 
 
 ## License
