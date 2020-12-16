@@ -270,9 +270,8 @@ class Solution:
 # Leetcode 416 分割等和子集
 ###题目描述
 
-![](322.png)
 
-最基本的背包问题：
+背包问题介绍：
 一共有N件物品，第i（i从1开始）件物品的重量为w[i]，价值为v[i]。在总重量不超过背包承载上限W的情况下，能够装入背包的最大价值是多少？
 如果采用暴力穷举的方式，每件物品都存在装入和不装入两种情况，所以总的时间复杂度是O(2^N)，这是不可接受的。
 而使用动态规划可以将复杂度降至O(NW)。我们的目标是书包内物品的总价值，而变量是物品和书包的限重，所以我们可定义状态dp:
@@ -281,6 +280,100 @@ class Solution:
 dp[i][j]表示将前i件物品装进限重为j的背包可以获得的最大价值, 0<=i<=N, 0<=j<=W
 ```
 
+![](416.png)
+这是一道中等难度的题目。乍一看有点懵，但是我们可以换个角度，这道题是不是说我们是否可以从给定的数组中挑出一些数，这些数的总和恰好是数组总和的一半。
+有没有感觉很熟悉，我们想一下背包问题的问题描述：我们是否可以从给定的物品中挑出一些物品，使得这些物品恰好可以装满整个背包。
+其实这道题本质上就是一道背包问题。
+我们首先定义一个二维的动态规划数组dp[n][m+1]，并将其全部初始化为False。其中n 表示物品的总个数，而 m 表示数组总和的一半。dp 数组在容量这里多加一维是为了考虑容量为0 这个边界条件。
+
+定义好了dp数组之后，我们看一下dp[i][j] 的含义，我们定义状态dp[i][j] 为在前i个物品中存不存在一种选择的可能性，使得它们的总和为j。如果存在，我们就将dp[i][j]的值置为True。
+
+定义好了状态dp[i][j]，我们怎么进行状态的转移呢？
+其实这里的状态转移和我们人做选择时候很像，对于元素i, 只有两种选择的可能性，放或者是不放。
+如果我们如果选择不放第 i 个物品，那么dp[i][j]=dp[i-1][j]。
+如果我们选择放第 i 个物品，那么 dp[i][j]=dp[i-1][j-nums[i]]，当然这里的前提条件是 j>=nums[i]。
+可能有些同学有些蒙，我们来手动画一下状态转移图来加深一下理解（我们用０代表False，１代表True）：
+
+![](416_sub.jpg)
+
+下面我把这道题的四要素以及代码讲解一下：
+
+- state = dp[i][j]，代表了当前的和为j是否可以用前i个数的和来表示。
+- function ： dp[i][j] = dp[i-1][j] or dp[i-1][j-nums[i]]，也即选或者没选。
+- initial：初始化dp[:][0] = True, dp[0][nums[0]] = True
+- final state：最终状态就是dp[-1][-1]
+
+- O(time)：O(nm)
+- O(space)：O(nm)
+
+```
+import numpy as np
+class Solution:
+    def canPartition(self, nums: List[int]) -> bool:
+        total_sum = sum(nums)
+        n = len(nums)
+        if total_sum%2==1:
+            return False
+        
+        half_sum = total_sum//2
+        dp = [[0]*(half_sum+1) for i in range(n)]
+        dp = np.array(dp)
+        if nums[0]<=half_sum:
+            dp[0][nums[0]]=1
+        
+        for i in range(n):
+            dp[i][0]=1
+
+        for i in range(1,n):
+            for j in range(half_sum+1):
+                dp[i][j] = dp[i-1][j]
+                if nums[i]<=j:
+                    dp[i][j] = dp[i-1][j] or dp[i-1][j-nums[i]]
+        if dp[-1][-1] == 1: return True
+        else: return False
+```
+但是在这个问题当中，dp所占用的空间是可以被减少的，这也是一般的follow up 问题，如何进行一种状态压缩呢？
+上述代码的空间复杂度为O(mn)，我们可以将其降到O(m)。
+降低空间复杂度的核心motivation在于，我们发现，dp[i][:]的更新仅仅依赖于dp[i-1][:]，和dp[i-2][:] 或者更往前的状态是无关的，并且dp[i][j]的状态仅仅和dp[i-1][j] 以及 dp[i-1][j-nums[i]] 相关。也即我们状态图的上一行。
+因此，之前的历史状态其实是可以不保存的；我们可以仅仅维护一个动态数组dp[m+1]，而其中最核心的技巧就是将j从大到小更新，
+这样上一轮dp[j-nums[i]]的值就可以在这一轮更新dp[j]的时候保持不变，代码如下，实际上我们只需要两个列表做就可以了，dp[0]代表了上一个状态，dp[1]代表了下一个状态，然后每计算完一行之后，更新dp[0]，然后交替的进行计算。
+
+```
+import numpy as np
+
+class Solution:
+    def canPartition(self, nums) -> bool:
+        total_sum = sum(nums)
+        n = len(nums)
+
+        # coner case
+        if total_sum % 2 == 1:
+            return False
+
+        half_sum = total_sum // 2
+
+        dp = [[0] * (half_sum + 1)]*2
+
+        if nums[0] <= half_sum:
+            dp[0][nums[0]] = 1
+
+        dp[0][0] = 1
+        dp[1][0] = 1
+        dp = np.array(dp)
+        for i in range(1, n):
+            for j in range(half_sum + 1):
+                dp[1][j] = dp[0][j]
+                if nums[i] <= j:
+                    dp[1][j] = dp[0][j] or dp[0][j - nums[i]]
+            # after this row, update dp[0]
+            for k in range(half_sum + 1):
+                dp[0][k] = dp[1][k]
+        print(dp)
+        if dp[-1][-1] == 1:
+            return True
+        else:
+            return False
+```
 
 # Leetcode 322 零钱兑换
 ###题目描述
