@@ -27,6 +27,12 @@
 父子递归指的是这种题型需要一种拆分的思想，类似于俄罗斯套娃的思想，而分治法的意思是一种分开的方法，
 常常用在二叉树上，左子树和右子树会进行一种分开然后再合并处理的操作。所以说碰到这两种题型就可以使用递归了呢～
 
+
+一般的返回结构
+- list
+- max
+- number
+- None, and plus global paramater.
 # how
 
 | Leetcode # | Title | Class | Solution|
