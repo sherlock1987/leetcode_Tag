@@ -77,7 +77,6 @@
 ```f[i][i]=f[i−1][i−1]+c[i][i]```最终，我们只需要在dp三角形的最后一行找到最小值就可以了。那么初始的状态是什么呢？
 实际上就是刚开始的时候设定dp的第一个单位的数值为```cp[0][0]```，也即是```dp[0][0]=c[0][0]```。状态转换图如下所示：
 
-# /home/raleigh/work/leetcode_Tag/Tag/DP/elephant.jpg
 ![](/home/raleigh/work/leetcode_Tag/Tag/DP/120_sub_1.png)
 
 如此一来，我们只需要慢慢的一层一层的计算就能够找到最终的答案了，下面是最终的程序：
