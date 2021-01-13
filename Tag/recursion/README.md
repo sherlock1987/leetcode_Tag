@@ -27,6 +27,8 @@
 父子递归指的是这种题型需要一种拆分的思想，类似于俄罗斯套娃的思想，而分治法的意思是一种分开的方法，
 常常用在二叉树上，左子树和右子树会进行一种分开然后再合并处理的操作。所以说碰到这两种题型就可以使用递归了呢～
 
+# 技巧
+递归的一些小技巧，在到达终点的时候就进行一种判断。
 
 一般的返回结构
 - list
@@ -453,7 +455,43 @@ class Solution:
         recurseAndReverse(right, m, n)
         return head
 ```
+
+### 基本的题型以及基本的模板，能帮助你省下来两分钟的做题时间
+1. 二维坐标的路径类题目。
+例如在路径中去找一个东西。
+```
+def repeat(point, path):
+    """
+    :params point, 当期的点的二维坐标
+    :params path, 当前走过的路径
+    return bool
+    """
+    # exit condition, return bool
+        # 记录当前走过的节点，记录下来。
+        path.add((point[0], point[1]))
+        # 从四个方向开始来探索
+        for direct in [[-1, 0], [1, 0], [0, 1], [0, -1]]:
+            next_point = [point[0] + direct[0], point[1] + direct[1]]
+            if (next_point[0], next_point[1]) not in path:
+                if repeat(next_point, path):
+                    return True
+        # 代表了最终没有找到，返回错误值
+        return False
+```
+
+2. 排列组合问题的模板
+```
+def repeat(point, path):
+    """
+    :params point, 当期的点的二维坐标
+    :params path, 当前走过的路径
+    return bool
+    """
+    # here has four stuff over here.
+```
 ## License
+
+
 
 [MIT](LICENSE) © Zhengxu(Raleigh) Hou
 
